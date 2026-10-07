@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "NightWrapUp",
+  "version": "1.0.0",
+  "description": "Save the current YouTube video to a NightWrapUp library.",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://apinightwrapup.ziax.online/*",
+    "https://nightwrapup.ziax.online/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Save to NightWrapUp",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*",
+        "https://music.youtube.com/*",
+        "https://youtu.be/*"
+      ],
+      "js": [
+        "content-youtube.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://nightwrapup.ziax.online/*"
+      ],
+      "js": [
+        "content-bridge.js",
+        "content-frontend.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
