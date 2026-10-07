@@ -1,0 +1,123 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  background: #121218;
+  color: #f5f5f7;
+}
+
+body {
+  margin: 0;
+}
+
+.extension-page {
+  min-width: 320px;
+  min-height: 220px;
+}
+
+.save-page {
+  min-width: 380px;
+}
+
+.app {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.status {
+  min-height: 22px;
+  margin: 0;
+  color: #b8b8c5;
+}
+
+.status[data-type="error"] {
+  color: #ff9b9b;
+}
+
+.status[data-type="success"] {
+  color: #8ee6ac;
+}
+
+section {
+  display: grid;
+  gap: 12px;
+}
+
+button,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #66667a;
+  border-radius: 7px;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: #8c5cff;
+  color: white;
+}
+
+button.secondary {
+  background: transparent;
+  color: #ddd8ff;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+select {
+  margin-top: 6px;
+  background: #242432;
+  color: inherit;
+}
+
+#nightwrapup-save-button {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  z-index: 2147483647;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 45%);
+  font-weight: 800;
+  touch-action: none;
+  user-select: none;
+}
+
+#nightwrapup-frontend-button {
+  position: fixed;
+  right: 24px;
+  bottom: 88px;
+  z-index: 2147483647;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 45%);
+  background: #8c5cff;
+  color: white;
+  cursor: grab;
+  font-weight: 800;
+  touch-action: none;
+  user-select: none;
+}
+
+#nightwrapup-frontend-button:active {
+  cursor: grabbing;
+}
