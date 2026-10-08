@@ -5,17 +5,19 @@ createFrontendButton();
 
 function createRobotMarkup() {
   return `
-    <span class="nightwrapup-orb" aria-hidden="true">
-      <span class="nightwrapup-orb-glow"></span>
-      <span class="nightwrapup-vinyl">
-        <span class="nightwrapup-vinyl-center"></span>
-      </span>
-      <span class="nightwrapup-note">&#9835;</span>
-      <span class="nightwrapup-spark nightwrapup-spark-one"></span>
-      <span class="nightwrapup-spark nightwrapup-spark-two"></span>
-    </span>
-    <span class="nightwrapup-connected" aria-label="Extension connected">&#10003;</span>`;
+    <svg class="nw-logo" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+      <path class="nw-logo-moon"
+        d="M28 8a14.5 14.5 0 0 1-3 20.6A14.5 14.5 0 0 0 28 8Z
+           M14 4.5a16 16 0 1 0 11.3 27.4A12 12 0 0 1 14 4.5Z"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="nw-logo-note"
+        d="M24 14v12.5a3 3 0 1 1-2-2.83V17.5l-6 1.5v9.5a3 3 0 1 1-2-2.83V16l10-2.5Z"/>
+    </svg>
+    <span class="nw-particle nw-particle-one"></span>
+    <span class="nw-particle nw-particle-two"></span>
+    <span class="nw-particle nw-particle-three"></span>`;
 }
+
 
 function createFrontendButton() {
   if (document.getElementById(BUTTON_ID)) {
