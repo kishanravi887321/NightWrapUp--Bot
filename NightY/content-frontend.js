@@ -1,8 +1,21 @@
 const BUTTON_ID = "nightwrapup-frontend-button";
-const OPEN_SAVE_INTERFACE = "OPEN_SAVE_INTERFACE";
 const POSITION_KEY = "frontendFloatingButtonPosition";
 
 createFrontendButton();
+
+function createRobotMarkup() {
+  return `
+    <span class="nightwrapup-orb" aria-hidden="true">
+      <span class="nightwrapup-orb-glow"></span>
+      <span class="nightwrapup-vinyl">
+        <span class="nightwrapup-vinyl-center"></span>
+      </span>
+      <span class="nightwrapup-note">&#9835;</span>
+      <span class="nightwrapup-spark nightwrapup-spark-one"></span>
+      <span class="nightwrapup-spark nightwrapup-spark-two"></span>
+    </span>
+    <span class="nightwrapup-connected" aria-label="Extension connected">&#10003;</span>`;
+}
 
 function createFrontendButton() {
   if (document.getElementById(BUTTON_ID)) {
@@ -15,7 +28,7 @@ function createFrontendButton() {
   button.title = "Open NightWrapUp save interface";
   button.setAttribute("aria-label", "Open NightWrapUp save interface");
   button.style.display = "block";
-  button.textContent = "N";
+  button.innerHTML = createRobotMarkup();
   button.addEventListener("pointerdown", startDragging);
   button.addEventListener("click", (event) => {
     if (button.dataset.dragged === "true") {
@@ -23,11 +36,23 @@ function createFrontendButton() {
       event.preventDefault();
       return;
     }
-    chrome.runtime.sendMessage({ type: OPEN_SAVE_INTERFACE });
+    button.classList.add("nightwrapup-pulse");
+    window.setTimeout(() => button.classList.remove("nightwrapup-pulse"), 500);
   });
 
   document.documentElement.appendChild(button);
+  updateConnectionState(button);
   restorePosition(button);
+}
+
+function updateConnectionState(button = document.getElementById(BUTTON_ID)) {
+  if (!button) return;
+  chrome.storage.local.get("extensionToken").then((values) => {
+    button.dataset.connected = typeof values.extensionToken === "string" &&
+      values.extensionToken.trim() !== "" ? "true" : "false";
+  }).catch(() => {
+    button.dataset.connected = "false";
+  });
 }
 
 function startDragging(event) {
@@ -91,3 +116,5 @@ function savePosition(button) {
 function clamp(value, minimum, maximum) {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
 }
+
+setInterval(updateConnectionState, 1000);

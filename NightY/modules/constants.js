@@ -8,5 +8,5 @@ export const STORAGE_KEYS = {
 };
 export const MESSAGE_TYPES = {
   storeToken: "STORE_EXTENSION_TOKEN",
-  openSaveInterface: "OPEN_SAVE_INTERFACE"
+  saveActiveSong: "SAVE_ACTIVE_SONG"
 };

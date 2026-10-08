@@ -1,7 +1,21 @@
 const BUTTON_ID = "nightwrapup-save-button";
-const OPEN_SAVE_INTERFACE = "OPEN_SAVE_INTERFACE";
+const SAVE_ACTIVE_SONG = "SAVE_ACTIVE_SONG";
 const POSITION_KEY = "floatingButtonPosition";
 let lastUrl = "";
+
+function createRobotMarkup() {
+  return `
+    <span class="nightwrapup-orb" aria-hidden="true">
+      <span class="nightwrapup-orb-glow"></span>
+      <span class="nightwrapup-vinyl">
+        <span class="nightwrapup-vinyl-center"></span>
+      </span>
+      <span class="nightwrapup-note">&#9835;</span>
+      <span class="nightwrapup-spark nightwrapup-spark-one"></span>
+      <span class="nightwrapup-spark nightwrapup-spark-two"></span>
+    </span>
+    <span class="nightwrapup-connected" aria-label="Extension connected">&#10003;</span>`;
+}
 
 function updateButton() {
   const url = window.location.href;
@@ -24,7 +38,7 @@ function updateButton() {
   button.type = "button";
   button.title = "Save to NightWrapUp";
   button.setAttribute("aria-label", "Save this video to NightWrapUp");
-  button.textContent = "N";
+  button.innerHTML = createRobotMarkup();
   button.addEventListener("pointerdown", startDragging);
   button.addEventListener("click", (event) => {
     if (button.dataset.dragged === "true") {
@@ -32,13 +46,37 @@ function updateButton() {
       event.preventDefault();
       return;
     }
+    button.dataset.saveState = "saving";
+    button.title = "Saving song to NightWrapUp...";
     chrome.runtime.sendMessage({
-      type: OPEN_SAVE_INTERFACE,
+      type: SAVE_ACTIVE_SONG,
       youtubeUrl: window.location.href
+    }, (response) => {
+      if (chrome.runtime.lastError || !response?.ok) {
+        button.dataset.saveState = "error";
+        button.title = response?.message || "NightWrapUp could not save this song.";
+        return;
+      }
+      button.dataset.saveState = "saved";
+      button.title = "Song saved to your selected NightWrapUp library.";
+      window.setTimeout(() => {
+        if (button.isConnected) button.dataset.saveState = "";
+      }, 3000);
     });
   });
   document.documentElement.appendChild(button);
+  updateConnectionState(button);
   restorePosition(button);
+}
+
+function updateConnectionState(button = document.getElementById(BUTTON_ID)) {
+  if (!button) return;
+  chrome.storage.local.get("extensionToken").then((values) => {
+    button.dataset.connected = typeof values.extensionToken === "string" &&
+      values.extensionToken.trim() !== "" ? "true" : "false";
+  }).catch(() => {
+    button.dataset.connected = "false";
+  });
 }
 
 function startDragging(event) {
@@ -139,4 +177,7 @@ function isSupportedYouTubeUrl(rawUrl) {
 }
 
 updateButton();
-setInterval(updateButton, 1000);
+setInterval(() => {
+  updateButton();
+  updateConnectionState();
+}, 1000);

@@ -1,12 +1,11 @@
 import { FRONTEND_URL } from "./modules/constants.js";
-import { ApiError, loadLibraries, saveSong } from "./modules/api.js";
+import { ApiError, createLibrary, loadLibraries } from "./modules/api.js";
 import {
   clearExtensionToken,
   getExtensionToken,
   getSelectedLibraryId,
   setSelectedLibraryId
 } from "./modules/storage.js";
-import { isSupportedYouTubeUrl } from "./modules/youtube.js";
 
 const statusElement = document.querySelector("#status");
 const contentElement = document.querySelector("#content");
@@ -23,18 +22,10 @@ async function init() {
 
   try {
     const libraries = await loadLibraries();
-    renderSaveState(libraries, await getYouTubeUrl());
+    const selectedLibraryId = await getSelectedLibraryId();
+    renderLibraryState(libraries, selectedLibraryId);
   } catch (error) {
     renderError(error);
-  }
-
-  async function getYouTubeUrl() {
-    const queryUrl = new URLSearchParams(window.location.search).get("youtubeUrl");
-    if (queryUrl) {
-      return queryUrl;
-    }
-    const activeTab = await getActiveTab();
-    return activeTab?.url;
   }
 }
 
@@ -43,7 +34,7 @@ function renderConnectState() {
   contentElement.replaceChildren(
     createText("Connect it through NightWrapUp to load your libraries."),
     createButton("Open NightWrapUp", () => {
-      chrome.tabs.create({ url: `${FRONTEND_URL}?extension=connect` });
+      chrome.tabs.create({ url: FRONTEND_URL });
     }),
     createButton("Clear stored connection", async () => {
       await clearExtensionToken();
@@ -52,80 +43,119 @@ function renderConnectState() {
   );
 }
 
-function renderSaveState(libraries, activeUrl) {
-  if (!Array.isArray(libraries) || libraries.length === 0) {
-    setStatus("No libraries found.", "info");
+function renderLibraryState(libraries, selectedLibraryId) {
+  const libraryList = Array.isArray(libraries) ? libraries : [];
+  const createForm = document.createElement("form");
+  createForm.className = "library-create-form";
+  createForm.hidden = true;
+  const nameInput = document.createElement("input");
+  nameInput.placeholder = "New library name";
+  nameInput.maxLength = 80;
+  nameInput.required = true;
+  nameInput.setAttribute("aria-label", "New library name");
+  const descriptionInput = document.createElement("input");
+  descriptionInput.placeholder = "Description (optional)";
+  descriptionInput.maxLength = 240;
+  descriptionInput.setAttribute("aria-label", "Library description");
+  const createButtonElement = createButton("Create library", async () => {
+    await createNewLibrary(nameInput, descriptionInput, createButtonElement);
+  });
+  createForm.append(nameInput, descriptionInput, createButtonElement);
+  createForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    createButtonElement.click();
+  });
+
+  const addButton = createButton("+", () => {
+    createForm.hidden = !createForm.hidden;
+    addButton.setAttribute("aria-expanded", String(!createForm.hidden));
+    addButton.title = createForm.hidden ? "Create a new library" : "Close new library form";
+  }, "icon-button");
+  addButton.setAttribute("aria-label", "Create a new library");
+  addButton.setAttribute("aria-expanded", "false");
+  addButton.title = "Create a new library";
+
+  if (libraryList.length === 0) {
+    setStatus("Create your first library.", "info");
     contentElement.replaceChildren(
-      createText("Create a library in NightWrapUp, then reload this view."),
+      createText("Your libraries belong to your NightWrapUp account."),
+      addButton,
+      createForm,
       createButton("Open NightWrapUp", () => {
         chrome.tabs.create({ url: FRONTEND_URL });
-      })
+      }, "secondary")
     );
     return;
-  }
-
-  if (!isSupportedYouTubeUrl(activeUrl)) {
-    setStatus("Open a supported YouTube video first.", "error");
-  } else {
-    setStatus("Ready to save the active YouTube video.", "info");
   }
 
   const select = document.createElement("select");
   select.id = "library";
   select.setAttribute("aria-label", "Select a library");
-  const savedLibraryIdPromise = getSelectedLibraryId();
-  libraries.forEach((library) => {
+  libraryList.forEach((library) => {
     const option = document.createElement("option");
     option.value = library._id;
     option.textContent = library.name;
     select.appendChild(option);
   });
 
-  savedLibraryIdPromise.then((savedLibraryId) => {
-    if (libraries.some((library) => library._id === savedLibraryId)) {
-      select.value = savedLibraryId;
-    }
-  });
+  const selectedLibrary = libraryList.find((library) => library._id === selectedLibraryId);
+  const activeLibrary = selectedLibrary || libraryList[0];
+  select.value = activeLibrary._id;
 
-  select.addEventListener("change", () => setSelectedLibraryId(select.value));
-  const saveButton = createButton("Save to library", async () => {
-    await saveCurrentSong(select.value, activeUrl, saveButton);
+  select.addEventListener("change", async () => {
+    try {
+      await setSelectedLibraryId(select.value);
+      selectedLibraryName.textContent = `Selected library: ${select.options[select.selectedIndex].text}`;
+      setStatus("Library selection saved.", "success");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Unable to save the selected library.", "error");
+    }
   });
   const refreshButton = createButton("Reload libraries", () => init(), "secondary");
   const disconnectButton = createButton("Disconnect", async () => {
     await clearExtensionToken();
     init();
   }, "secondary");
+  const selectedLibraryName = document.createElement("p");
+  selectedLibraryName.className = "selected-library";
+  selectedLibraryName.textContent = `Selected library: ${activeLibrary.name}`;
 
   contentElement.replaceChildren(
     createLabel("Library", select),
-    saveButton,
+    addButton,
+    createForm,
     refreshButton,
-    disconnectButton
+    disconnectButton,
+    selectedLibraryName
   );
+  setStatus("Choose the library used by the floating save button.", "info");
+
+  if (!selectedLibrary) {
+    setSelectedLibraryId(activeLibrary._id).catch((error) => {
+      setStatus(error instanceof Error ? error.message : "Unable to save the selected library.", "error");
+    });
+  }
 }
 
-async function saveCurrentSong(libraryId, activeUrl, button) {
-  if (!isSupportedYouTubeUrl(activeUrl)) {
-    setStatus("Open a supported YouTube video first.", "error");
+async function createNewLibrary(nameInput, descriptionInput, button) {
+  const name = nameInput.value.trim();
+  if (!name) {
+    setStatus("Enter a library name.", "error");
     return;
   }
 
   button.disabled = true;
-  setStatus("Saving...", "loading");
+  setStatus("Creating library...", "loading");
   try {
-    await saveSong(libraryId, activeUrl);
-    setStatus("Song saved successfully.", "success");
+    const library = await createLibrary(name, descriptionInput.value.trim());
+    await setSelectedLibraryId(library._id);
+    setStatus(`Library "${library.name}" created and selected.`, "success");
+    init();
   } catch (error) {
     renderError(error);
   } finally {
     button.disabled = false;
   }
-}
-
-async function getActiveTab() {
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  return tabs[0] || null;
 }
 
 function renderError(error) {
@@ -136,7 +166,7 @@ function renderError(error) {
   contentElement.replaceChildren(
     createButton("Try again", () => init()),
     createButton("Open NightWrapUp", () => {
-      chrome.tabs.create({ url: `${FRONTEND_URL}?extension=connect` });
+      chrome.tabs.create({ url: FRONTEND_URL });
     }, "secondary")
   );
 }

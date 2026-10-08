@@ -14,19 +14,24 @@ body {
   min-height: 220px;
 }
 
+.extension-page.popup-window {
+  width: 400px;
+}
+
 .save-page {
   min-width: 380px;
 }
 
 .app {
   display: grid;
-  gap: 14px;
-  padding: 20px;
+  gap: 12px;
+  padding: 18px;
 }
 
 h1 {
   margin: 0;
   font-size: 20px;
+  letter-spacing: -0.02em;
 }
 
 .status {
@@ -48,6 +53,38 @@ section {
   gap: 12px;
 }
 
+form.library-create-form {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #3d3d55;
+  border-radius: 10px;
+  background: #1b1b29;
+}
+
+.library-create-form[hidden] {
+  display: none;
+}
+
+.icon-button {
+  width: 38px;
+  min-height: 38px;
+  justify-self: end;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.selected-library {
+  margin: 2px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #36364a;
+  color: #a9f0bc;
+  font-size: 13px;
+  text-align: center;
+}
+
 button,
 select {
   box-sizing: border-box;
@@ -57,6 +94,18 @@ select {
   border-radius: 7px;
   padding: 8px 10px;
   font: inherit;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #66667a;
+  border-radius: 7px;
+  padding: 8px 10px;
+  font: inherit;
+  background: #242432;
+  color: inherit;
 }
 
 button {
@@ -83,39 +132,136 @@ select {
 
 #nightwrapup-save-button {
   position: fixed;
-  right: 24px;
-  bottom: 88px;
+  right: 20px;
+  bottom: 76px;
   z-index: 2147483647;
-  width: 42px;
-  height: 42px;
-  min-height: 42px;
-  border: 0;
+  width: 54px;
+  height: 54px;
+  min-height: 54px;
+  border: 2px solid #9b7cff;
   border-radius: 50%;
   padding: 0;
-  box-shadow: 0 2px 12px rgb(0 0 0 / 45%);
-  font-weight: 800;
+  box-shadow: 0 5px 18px rgb(0 0 0 / 48%), 0 0 18px rgb(124 58 237 / 24%);
+  background: radial-gradient(circle at 35% 25%, #384b8c, #171936 65%, #090b18);
+  color: white;
+  cursor: grab;
   touch-action: none;
   user-select: none;
 }
 
+#nightwrapup-save-button[data-save-state="saving"] {
+  border-color: #facc15;
+  filter: drop-shadow(0 0 10px rgb(250 204 21 / 80%));
+  cursor: wait;
+}
+
+#nightwrapup-save-button[data-save-state="saved"] {
+  border-color: #22c55e;
+  filter: drop-shadow(0 0 12px rgb(34 197 94 / 90%));
+}
+
+#nightwrapup-save-button[data-save-state="error"] {
+  border-color: #ef4444;
+  filter: drop-shadow(0 0 12px rgb(239 68 68 / 85%));
+}
+
 #nightwrapup-frontend-button {
   position: fixed;
-  right: 24px;
-  bottom: 88px;
+  right: 20px;
+  bottom: 76px;
   z-index: 2147483647;
-  width: 42px;
-  height: 42px;
-  min-height: 42px;
-  border: 0;
+  width: 54px;
+  height: 54px;
+  min-height: 54px;
+  border: 2px solid #9b7cff;
   border-radius: 50%;
   padding: 0;
-  box-shadow: 0 2px 12px rgb(0 0 0 / 45%);
+  box-shadow: 0 5px 18px rgb(0 0 0 / 48%), 0 0 18px rgb(124 58 237 / 24%);
   background: #8c5cff;
   color: white;
   cursor: grab;
-  font-weight: 800;
+  background: radial-gradient(circle at 35% 25%, #26335f, #11132d 68%, #080a16);
   touch-action: none;
   user-select: none;
+}
+
+.nightwrapup-music-icon {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 44px;
+  margin: 4px auto 0;
+  filter: drop-shadow(0 0 8px rgb(167 139 250 / 70%));
+}
+
+.nightwrapup-vinyl {
+  position: absolute;
+  top: 5px;
+  left: 3px;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #ddd6fe;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle, transparent 0 4px, rgb(196 181 253 / 22%) 5px 6px),
+    linear-gradient(145deg, #7c3aed, #312e81 70%);
+  box-shadow: inset 0 0 0 5px rgb(15 23 42 / 45%), 0 0 9px rgb(124 58 237 / 70%);
+}
+
+.nightwrapup-vinyl span {
+  position: absolute;
+  inset: 12px;
+  border: 2px solid #fef3c7;
+  border-radius: 50%;
+  background: #f472b6;
+  box-shadow: 0 0 7px rgb(244 114 182 / 80%);
+}
+
+.nightwrapup-vinyl span::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: #211b4a;
+}
+
+.nightwrapup-note {
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #67e8f9;
+  font-size: 21px;
+  line-height: 1;
+  text-shadow: 0 0 8px #22d3ee;
+}
+
+.nightwrapup-connected {
+  position: absolute;
+  right: -3px;
+  top: -4px;
+  display: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #07140d;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 18px;
+  box-shadow: 0 0 12px rgb(34 197 94 / 85%);
+}
+
+[data-connected="true"] .nightwrapup-connected {
+  display: block;
+}
+
+.nightwrapup-pulse {
+  animation: nightwrapup-pulse 0.5s ease;
+}
+
+@keyframes nightwrapup-pulse {
+  50% { transform: scale(1.12) rotate(3deg); }
 }
 
 #nightwrapup-frontend-button:active {

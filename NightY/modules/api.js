@@ -74,6 +74,13 @@ export function loadLibraries() {
   return request("/extension/libraries", { method: "GET" });
 }
 
+export function createLibrary(name, description = "") {
+  return request("/extension/libraries", {
+    method: "POST",
+    body: JSON.stringify({ name, description })
+  });
+}
+
 export function saveSong(libraryId, youtubeUrl) {
   return request(`/extension/libraries/${encodeURIComponent(libraryId)}/songs`, {
     method: "PUT",
